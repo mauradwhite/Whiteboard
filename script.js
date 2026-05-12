@@ -25,6 +25,7 @@ const formatToolbar = document.getElementById("format-toolbar");
 const editFontInput = document.getElementById("edit-font");
 const editSizeInput = document.getElementById("edit-size");
 const attachLinkButton = document.getElementById("attach-link-button");
+const closeFormatToolbarButton = document.getElementById("close-format-toolbar");
 
 newNoteButton.addEventListener("click", () => {
   noteForm.classList.remove("hidden");
@@ -105,6 +106,11 @@ editSizeInput.addEventListener("change", () => {
   if (!editSizeInput.value) return;
   applyInlineStyle("fontSize", editSizeInput.value);
   editSizeInput.value = "";
+});
+closeFormatToolbarButton.addEventListener("click", () => {
+  formatToolbar.classList.add("hidden");
+  activeNoteId = null;
+  savedSelection = null;
 });
 
 attachLinkButton.addEventListener("click", () => {
