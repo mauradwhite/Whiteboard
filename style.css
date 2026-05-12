@@ -372,12 +372,12 @@ button {
 }
 @media (max-width: 900px) {
   body {
-    overflow: hidden;
+    overflow: auto;
   }
 
   .app {
     height: 100vh;
-    overflow: hidden;
+    overflow: auto;
     transform: scale(0.65);
     transform-origin: top left;
     width: 153.85%;
@@ -412,7 +412,6 @@ button {
   }
 }
 body.widget-mode {
-  overflow-x: hidden;
   overflow-y: auto;
 }
 
@@ -420,7 +419,7 @@ body.widget-mode .app {
   width: 1400px;
   max-width: none;
   transform: none;
-  zoom: 0.45;
+  zoom: 0.4;
   padding: 1rem;
   box-sizing: border-box;
 }
