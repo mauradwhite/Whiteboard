@@ -107,7 +107,11 @@ editSizeInput.addEventListener("change", () => {
   applyInlineStyle("fontSize", editSizeInput.value);
   editSizeInput.value = "";
 });
-closeFormatToolbarButton.addEventListener("click", () => {
+
+closeFormatToolbarButton.addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+
   formatToolbar.classList.add("hidden");
   activeNoteId = null;
   savedSelection = null;
