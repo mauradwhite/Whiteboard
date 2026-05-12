@@ -1,3 +1,31 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  onSnapshot,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC4KVJW4GNoO153RxYJCsKueNzGlcbAyvo",
+  authDomain: "whiteboard-63856.firebaseapp.com",
+  projectId: "whiteboard-63856",
+  storageBucket: "whiteboard-63856.firebasestorage.app",
+  messagingSenderId: "586335325952",
+  appId: "1:586335325952:web:a220aea48161ca52c2ede5"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+
+const BOARD_ID = "maura-research-whiteboard";
+const boardRef = doc(db, "boards", BOARD_ID);
+
+let isApplyingRemoteUpdate = false;
+let saveTimer = null;
 const urlParams = new URLSearchParams(window.location.search);
 const isWidgetMode = urlParams.get("widget") === "true";
 
