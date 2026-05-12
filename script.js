@@ -1,3 +1,9 @@
+const urlParams = new URLSearchParams(window.location.search);
+const isWidgetMode = urlParams.get("widget") === "true";
+
+if (isWidgetMode) {
+  document.body.classList.add("widget-mode");
+}
 const STORAGE_KEY = "researchWhiteboardData";
 
 const defaultData = {
