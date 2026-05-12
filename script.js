@@ -113,6 +113,8 @@ closeFormatToolbarButton.addEventListener("click", (event) => {
   event.stopPropagation();
 
   formatToolbar.classList.add("hidden");
+  formatToolbar.style.display = "none";
+
   activeNoteId = null;
   savedSelection = null;
 });
@@ -210,7 +212,8 @@ function createNoteElement(note) {
 
   noteContent.addEventListener("focus", () => {
     activeNoteId = note.id;
-    formatToolbar.classList.remove("hidden");
+    formatToolbar.style.display = "";
+formatToolbar.classList.remove("hidden");
   });
 
   noteContent.addEventListener("input", () => {
