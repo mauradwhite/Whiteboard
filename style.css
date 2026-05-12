@@ -370,3 +370,44 @@ button {
     width: calc(100% - 2.4rem);
   }
 }
+@media (max-width: 900px) {
+  body {
+    overflow: hidden;
+  }
+
+  .app {
+    height: 100vh;
+    overflow: hidden;
+    transform: scale(0.65);
+    transform-origin: top left;
+    width: 153.85%;
+  }
+
+  .board {
+    grid-template-columns: repeat(5, minmax(150px, 1fr));
+    gap: 0.6rem;
+  }
+
+  .column {
+    min-width: 0;
+    padding: 0.6rem;
+  }
+
+  .column h2 {
+    font-size: 0.85rem;
+  }
+
+  .sticky-note {
+    min-height: auto;
+    padding: 0.65rem;
+    font-size: 0.85rem;
+  }
+
+  .notes-section {
+    margin-top: 0.75rem;
+  }
+
+  .notes-paper {
+    min-height: 120px;
+  }
+}
