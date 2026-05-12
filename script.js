@@ -4,6 +4,28 @@ const isWidgetMode = urlParams.get("widget") === "true";
 if (isWidgetMode) {
   document.body.classList.add("widget-mode");
 }
+function resizeWidgetMode() {
+  if (!document.body.classList.contains("widget-mode")) return;
+
+  const app = document.querySelector(".app");
+  if (!app) return;
+
+  const designWidth = 1250;
+  const designHeight = 900;
+
+  const scaleX = window.innerWidth / designWidth;
+  const scaleY = window.innerHeight / designHeight;
+  const scale = Math.min(scaleX, scaleY);
+
+  app.style.width = `${designWidth}px`;
+  app.style.height = `${designHeight}px`;
+  app.style.transform = `scale(${scale})`;
+  app.style.transformOrigin = "top left";
+}
+
+window.addEventListener("load", resizeWidgetMode);
+window.addEventListener("resize", resizeWidgetMode);
+
 const STORAGE_KEY = "researchWhiteboardData";
 
 const defaultData = {
