@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Research Whiteboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>Research Whiteboard</h1>
+    <button id="new-note-button" class="primary-button">+ New Sticky Note</button>
+  </header>
+
+  <main>
+    <section class="toolbar" aria-label="New sticky note controls">
+      <form id="note-form" class="note-form hidden">
+        <label for="note-text">Note label</label>
+        <input
+          type="text"
+          id="note-text"
+          name="note-text"
+          placeholder="Example: AI writing feedback study"
+          maxlength="160"
+          required
+        />
+
+        <label for="note-color">Color</label>
+        <select id="note-color" name="note-color">
+          <option value="yellow">Pastel yellow</option>
+          <option value="pink">Pastel pink</option>
+          <option value="blue">Pastel blue</option>
+          <option value="green">Pastel green</option>
+          <option value="purple">Pastel purple</option>
+          <option value="peach">Pastel peach</option>
+        </select>
+
+        <label for="note-font">Font</label>
+        <select id="note-font" name="note-font">
+          <option value="Arial, Helvetica, sans-serif">Arial</option>
+          <option value="Georgia, serif">Georgia</option>
+          <option value="'Trebuchet MS', Arial, sans-serif">Trebuchet</option>
+          <option value="'Comic Sans MS', 'Trebuchet MS', cursive">Handwritten</option>
+          <option value="'Courier New', monospace">Courier</option>
+        </select>
+
+        <label for="note-size">Size</label>
+        <select id="note-size" name="note-size">
+          <option value="14px">Small</option>
+          <option value="16px" selected>Medium</option>
+          <option value="18px">Large</option>
+          <option value="22px">Extra large</option>
+        </select>
+
+        <label class="format-check">
+          <input type="checkbox" id="note-bold" />
+          Bold
+        </label>
+
+        <label class="format-check">
+          <input type="checkbox" id="note-italic" />
+          Italic
+        </label>
+
+        <button type="submit">Create note</button>
+        <button type="button" id="cancel-note-button" class="secondary-button">Cancel</button>
+      </form>
+
+      <div id="format-toolbar" class="format-toolbar hidden" aria-label="Sticky note formatting controls">
+        <span>Format selected note:</span>
+        <select id="edit-font" aria-label="Change font">
+          <option value="">Font</option>
+          <option value="Arial, Helvetica, sans-serif">Arial</option>
+          <option value="Georgia, serif">Georgia</option>
+          <option value="'Trebuchet MS', Arial, sans-serif">Trebuchet</option>
+          <option value="'Comic Sans MS', 'Trebuchet MS', cursive">Handwritten</option>
+          <option value="'Courier New', monospace">Courier</option>
+        </select>
+        <select id="edit-size" aria-label="Change font size">
+          <option value="">Size</option>
+          <option value="14px">Small</option>
+          <option value="16px">Medium</option>
+          <option value="18px">Large</option>
+          <option value="22px">Extra large</option>
+        </select>
+        <button type="button" data-command="bold"><strong>B</strong></button>
+        <button type="button" data-command="italic"><em>I</em></button>
+        <button type="button" data-command="insertUnorderedList">• List</button>
+        <button type="button" id="attach-link-button">Attach link</button>
+      </div>
+    </section>
+
+    <section class="whiteboard" aria-label="Research project status board">
+      <div class="board-columns" id="board-columns">
+        <section class="board-column" data-column="study-design">
+          <h2>Study Design</h2>
+          <div class="note-list" data-column="study-design"></div>
+        </section>
+
+        <section class="board-column" data-column="data-collection">
+          <h2>Data Collection</h2>
+          <div class="note-list" data-column="data-collection"></div>
+        </section>
+
+        <section class="board-column" data-column="analysis">
+          <h2>Analysis</h2>
+          <div class="note-list" data-column="analysis"></div>
+        </section>
+
+        <section class="board-column" data-column="writing">
+          <h2>Writing</h2>
+          <div class="note-list" data-column="writing"></div>
+        </section>
+
+        <section class="board-column" data-column="done">
+          <h2>Done</h2>
+          <div class="note-list" data-column="done"></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="notes-paper" aria-label="General notes section">
+      <h2>Notes</h2>
+      <textarea id="general-notes" placeholder="Type general notes, reminders, or next steps here..."></textarea>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
