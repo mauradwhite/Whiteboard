@@ -412,21 +412,29 @@ button {
   }
 }
 body.widget-mode {
-  margin: 0;
-  overflow: hidden;
-  background: #f8fbff;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body.widget-mode .app {
+  width: 1400px;
   max-width: none;
+  transform: none;
+  zoom: 0.45;
   padding: 1rem;
   box-sizing: border-box;
 }
 
 body.widget-mode .board {
-  grid-template-columns: repeat(5, minmax(210px, 1fr));
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+
+body.widget-mode .column {
+  min-width: 0;
 }
 
 body.widget-mode .notes-paper {
-  min-height: 160px;
+  min-height: 180px;
 }
