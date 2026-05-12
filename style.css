@@ -133,9 +133,10 @@ button {
 }
 
 .format-toolbar {
+ position: relative;
   align-items: center;
   margin-top: 0.75rem;
-  padding: 0.75rem;
+  padding: 1.05rem 2.5rem 0.75rem 0.75rem;
 }
 
 .format-toolbar span {
@@ -155,6 +156,26 @@ button {
 
 .format-toolbar button:hover {
   background: #fff7b8;
+}
+
+.format-toolbar .close-format-toolbar {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  display: grid;
+  place-items: center;
+  min-height: 1.55rem;
+  width: 1.55rem;
+  height: 1.55rem;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.format-toolbar .close-format-toolbar:hover {
+  background: var(--pink);
 }
 
 .whiteboard {
