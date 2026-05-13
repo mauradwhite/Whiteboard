@@ -180,8 +180,36 @@ attachLinkButton.addEventListener("click", () => {
   }
 });
 
-function loadBoardData() {
-  const savedData = localStorage.getItem(STORAGE_KEY);
+async function loadBoard() {
+  try {
+    const snapshot = await getDoc(boardRef);
+
+    if (snapshot.exists()) {
+      applyBoardState(snapshot.data());
+      return;
+    }
+
+    const localSaved = localStorage.getItem("researchWhiteboardState");
+
+    if (localSaved) {
+      const localState = JSON.parse(localSaved);
+      applyBoardState(localState);
+
+      await setDoc(boardRef, {
+        ...localState,
+        updatedAt: serverTimestamp()
+      });
+    }
+  } catch (error) {
+    console.error("Could not load board from Firebase:", error);
+
+    const localSaved = localStorage.getItem("researchWhiteboardState");
+    if (localSaved) {
+      applyBoardState(JSON.parse(localSaved));
+    }
+  }
+}
+
 
   if (!savedData) {
     return structuredClone(defaultData);
@@ -203,14 +231,88 @@ function loadBoardData() {
   }
 }
 
-function saveBoardData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
+function saveBoard() {
+  if (isApplyingRemoteUpdate) return;
+
+  clearTimeout(saveTimer);
+
+  saveTimer = setTimeout(async () => {
+    const boardState = collectBoardState();
+
+    try {
+      localStorage.setItem("researchWhiteboardState", JSON.stringify(boardState));
+
+      await setDoc(boardRef, {
+        ...boardState,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Could not save board to Firebase:", error);
+    }
+  }, 400);
 }
 
 function renderBoard() {
   noteLists.forEach((list) => {
     list.innerHTML = "";
   });
+function collectBoardState() {
+  const columns = {};
+
+  document.querySelectorAll(".column").forEach((column) => {
+    const columnId = column.dataset.column;
+    const notes = [];
+
+    column.querySelectorAll(".sticky-note").forEach((note) => {
+      const content = note.querySelector(".note-content");
+
+      notes.push({
+        id: note.dataset.id,
+        text: content.innerHTML,
+        color: note.dataset.color,
+        fontFamily: content.style.fontFamily || "",
+        fontSize: content.style.fontSize || "",
+        fontWeight: content.style.fontWeight || "",
+        fontStyle: content.style.fontStyle || ""
+      });
+    });
+
+    columns[columnId] = notes;
+  });
+
+  const notesBox = document.getElementById("notes-box");
+
+  return {
+    columns,
+    notesText: notesBox ? notesBox.innerHTML : ""
+  };
+}
+  function applyBoardState(boardState) {
+  if (!boardState || !boardState.columns) return;
+
+  isApplyingRemoteUpdate = true;
+
+  document.querySelectorAll(".column").forEach((column) => {
+    const columnId = column.dataset.column;
+    const notesContainer = column.querySelector(".notes-container") || column;
+
+    notesContainer.querySelectorAll(".sticky-note").forEach((note) => note.remove());
+
+    const notes = boardState.columns[columnId] || [];
+
+    notes.forEach((noteData) => {
+      const note = createNoteElement(noteData);
+      notesContainer.appendChild(note);
+    });
+  });
+
+  const notesBox = document.getElementById("notes-box");
+  if (notesBox && typeof boardState.notesText === "string") {
+    notesBox.innerHTML = boardState.notesText;
+  }
+
+  isApplyingRemoteUpdate = false;
+}
 
   const sortedNotes = [...boardData.notes].sort((a, b) => a.order - b.order);
 
@@ -500,5 +602,12 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+onSnapshot(boardRef, (snapshot) => {
+  if (!snapshot.exists()) return;
 
+  const remoteState = snapshot.data();
+  localStorage.setItem("researchWhiteboardState", JSON.stringify(remoteState));
+  applyBoardState(remoteState);
+});
 renderBoard();
+loadBoard();
