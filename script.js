@@ -24,15 +24,6 @@ const db = getFirestore(firebaseApp);
 const BOARD_ID = "maura-research-whiteboard";
 const boardRef = doc(db, "boards", BOARD_ID);
 
-let isApplyingRemoteUpdate = false;
-let saveTimer = null;
-const urlParams = new URLSearchParams(window.location.search);
-const isWidgetMode = urlParams.get("widget") === "true";
-
-if (isWidgetMode) {
-  document.body.classList.add("widget-mode");
-}
-
 const STORAGE_KEY = "researchWhiteboardData";
 
 const defaultData = {
@@ -44,6 +35,15 @@ let boardData = loadBoardData();
 let draggedNoteId = null;
 let activeNoteId = null;
 let savedSelection = null;
+let isApplyingRemoteUpdate = false;
+let saveTimer = null;
+
+const urlParams = new URLSearchParams(window.location.search);
+const isWidgetMode = urlParams.get("widget") === "true";
+
+if (isWidgetMode) {
+  document.body.classList.add("widget-mode");
+}
 
 const newNoteButton = document.getElementById("new-note-button");
 const cancelNoteButton = document.getElementById("cancel-note-button");
@@ -133,12 +133,14 @@ formatToolbar.querySelectorAll("button[data-command]").forEach((button) => {
 
 editFontInput.addEventListener("change", () => {
   if (!editFontInput.value) return;
+
   applyInlineStyle("fontFamily", editFontInput.value);
   editFontInput.value = "";
 });
 
 editSizeInput.addEventListener("change", () => {
   if (!editSizeInput.value) return;
+
   applyInlineStyle("fontSize", editSizeInput.value);
   editSizeInput.value = "";
 });
@@ -158,92 +160,111 @@ attachLinkButton.addEventListener("click", () => {
   restoreSelection();
 
   const selection = window.getSelection();
+
   if (!selection || selection.isCollapsed) {
     alert("Highlight the word or phrase you want to link first, then click Attach link.");
     return;
   }
 
   const url = prompt("Paste the link you want to attach:");
+
   if (!url) return;
 
   const safeUrl = normalizeUrl(url);
   document.execCommand("createLink", false, safeUrl);
 
   const activeContent = getActiveNoteContent();
+
   if (activeContent) {
     activeContent.querySelectorAll("a").forEach((link) => {
       link.target = "_blank";
       link.rel = "noopener noreferrer";
     });
+
     saveActiveNoteContent();
     activeContent.focus();
   }
 });
 
-async function loadBoard() {
-  try {
-    const snapshot = await getDoc(boardRef);
+function normalizeBoardData(data) {
+  const normalized = {
+    ...defaultData,
+    ...(data || {})
+  };
 
-    if (snapshot.exists()) {
-      applyBoardState(snapshot.data());
-      return;
-    }
+  normalized.notes = (normalized.notes || []).map((note, index) => ({
+    ...note,
+    id: note.id || crypto.randomUUID(),
+    html: note.html || escapeHtml(note.text || ""),
+    color: note.color || "yellow",
+    column: note.column || "study-design",
+    order: typeof note.order === "number" ? note.order : index,
+    fontFamily: note.fontFamily || "Arial, Helvetica, sans-serif",
+    fontSize: note.fontSize || "16px"
+  }));
 
-    const localSaved = localStorage.getItem("researchWhiteboardState");
+  normalized.generalNotes = normalized.generalNotes || "";
 
-    if (localSaved) {
-      const localState = JSON.parse(localSaved);
-      applyBoardState(localState);
-
-      await setDoc(boardRef, {
-        ...localState,
-        updatedAt: serverTimestamp()
-      });
-    }
-  } catch (error) {
-    console.error("Could not load board from Firebase:", error);
-
-    const localSaved = localStorage.getItem("researchWhiteboardState");
-    if (localSaved) {
-      applyBoardState(JSON.parse(localSaved));
-    }
-  }
+  return normalized;
 }
 
+function loadBoardData() {
+  const savedData = localStorage.getItem(STORAGE_KEY);
 
   if (!savedData) {
     return structuredClone(defaultData);
   }
 
   try {
-    const parsedData = JSON.parse(savedData);
-    parsedData.notes = (parsedData.notes || []).map((note) => ({
-      ...note,
-      html: note.html || escapeHtml(note.text || ""),
-      color: note.color || "yellow",
-      fontFamily: note.fontFamily || "Arial, Helvetica, sans-serif",
-      fontSize: note.fontSize || "16px"
-    }));
-    return { ...defaultData, ...parsedData };
+    return normalizeBoardData(JSON.parse(savedData));
   } catch (error) {
     console.error("Could not load saved whiteboard data:", error);
     return structuredClone(defaultData);
   }
 }
 
-function saveBoard() {
+async function loadBoard() {
+  try {
+    const snapshot = await getDoc(boardRef);
+
+    if (snapshot.exists()) {
+      boardData = normalizeBoardData(snapshot.data());
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
+      renderBoard();
+      return;
+    }
+
+    const localSaved = localStorage.getItem(STORAGE_KEY);
+
+    if (localSaved) {
+      boardData = normalizeBoardData(JSON.parse(localSaved));
+      renderBoard();
+
+      await setDoc(boardRef, {
+        ...boardData,
+        updatedAt: serverTimestamp()
+      });
+    } else {
+      renderBoard();
+    }
+  } catch (error) {
+    console.error("Could not load board from Firebase:", error);
+    boardData = loadBoardData();
+    renderBoard();
+  }
+}
+
+function saveBoardData() {
   if (isApplyingRemoteUpdate) return;
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
 
   clearTimeout(saveTimer);
 
   saveTimer = setTimeout(async () => {
-    const boardState = collectBoardState();
-
     try {
-      localStorage.setItem("researchWhiteboardState", JSON.stringify(boardState));
-
       await setDoc(boardRef, {
-        ...boardState,
+        ...boardData,
         updatedAt: serverTimestamp()
       });
     } catch (error) {
@@ -256,63 +277,6 @@ function renderBoard() {
   noteLists.forEach((list) => {
     list.innerHTML = "";
   });
-function collectBoardState() {
-  const columns = {};
-
-  document.querySelectorAll(".column").forEach((column) => {
-    const columnId = column.dataset.column;
-    const notes = [];
-
-    column.querySelectorAll(".sticky-note").forEach((note) => {
-      const content = note.querySelector(".note-content");
-
-      notes.push({
-        id: note.dataset.id,
-        text: content.innerHTML,
-        color: note.dataset.color,
-        fontFamily: content.style.fontFamily || "",
-        fontSize: content.style.fontSize || "",
-        fontWeight: content.style.fontWeight || "",
-        fontStyle: content.style.fontStyle || ""
-      });
-    });
-
-    columns[columnId] = notes;
-  });
-
-  const notesBox = document.getElementById("notes-box");
-
-  return {
-    columns,
-    notesText: notesBox ? notesBox.innerHTML : ""
-  };
-}
-  function applyBoardState(boardState) {
-  if (!boardState || !boardState.columns) return;
-
-  isApplyingRemoteUpdate = true;
-
-  document.querySelectorAll(".column").forEach((column) => {
-    const columnId = column.dataset.column;
-    const notesContainer = column.querySelector(".notes-container") || column;
-
-    notesContainer.querySelectorAll(".sticky-note").forEach((note) => note.remove());
-
-    const notes = boardState.columns[columnId] || [];
-
-    notes.forEach((noteData) => {
-      const note = createNoteElement(noteData);
-      notesContainer.appendChild(note);
-    });
-  });
-
-  const notesBox = document.getElementById("notes-box");
-  if (notesBox && typeof boardState.notesText === "string") {
-    notesBox.innerHTML = boardState.notesText;
-  }
-
-  isApplyingRemoteUpdate = false;
-}
 
   const sortedNotes = [...boardData.notes].sort((a, b) => a.order - b.order);
 
@@ -350,7 +314,7 @@ function createNoteElement(note) {
   noteContent.addEventListener("focus", () => {
     activeNoteId = note.id;
     formatToolbar.style.display = "";
-formatToolbar.classList.remove("hidden");
+    formatToolbar.classList.remove("hidden");
   });
 
   noteContent.addEventListener("input", () => {
@@ -365,6 +329,7 @@ formatToolbar.classList.remove("hidden");
   deleteButton.type = "button";
   deleteButton.textContent = "×";
   deleteButton.setAttribute("aria-label", "Delete sticky note");
+
   deleteButton.addEventListener("click", () => {
     deleteNote(note.id);
   });
@@ -510,8 +475,12 @@ function applyCommand(command) {
   restoreSelection();
   document.execCommand(command, false, null);
   saveActiveNoteContent();
+
   const activeContent = getActiveNoteContent();
-  if (activeContent) activeContent.focus();
+
+  if (activeContent) {
+    activeContent.focus();
+  }
 }
 
 function applyInlineStyle(styleName, styleValue) {
@@ -548,12 +517,15 @@ function applyInlineStyle(styleName, styleValue) {
 
 function saveCurrentSelection() {
   const selection = window.getSelection();
+
   if (!selection || selection.rangeCount === 0) return;
+
   savedSelection = selection.getRangeAt(0).cloneRange();
 }
 
 function restoreSelection() {
   const activeContent = getActiveNoteContent();
+
   if (!activeContent) return;
 
   activeContent.focus();
@@ -567,6 +539,7 @@ function restoreSelection() {
 
 function saveActiveNoteContent() {
   const activeContent = getActiveNoteContent();
+
   if (!activeContent || !activeNoteId) return;
 
   updateNote(activeNoteId, {
@@ -578,22 +551,27 @@ function saveActiveNoteContent() {
 
 function getActiveNoteContent() {
   if (!activeNoteId) return null;
+
   return document.querySelector(`.sticky-note[data-id="${activeNoteId}"] .note-content`);
 }
 
 function getClosestNoteContent(node) {
   if (!node) return null;
+
   if (node.nodeType === Node.TEXT_NODE) {
     return node.parentElement?.closest(".note-content") || null;
   }
+
   return node.closest?.(".note-content") || null;
 }
 
 function normalizeUrl(url) {
   const trimmedUrl = url.trim();
+
   if (/^https?:\/\//i.test(trimmedUrl) || /^mailto:/i.test(trimmedUrl)) {
     return trimmedUrl;
   }
+
   return `https://${trimmedUrl}`;
 }
 
@@ -602,12 +580,15 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
 onSnapshot(boardRef, (snapshot) => {
   if (!snapshot.exists()) return;
 
-  const remoteState = snapshot.data();
-  localStorage.setItem("researchWhiteboardState", JSON.stringify(remoteState));
-  applyBoardState(remoteState);
+  isApplyingRemoteUpdate = true;
+  boardData = normalizeBoardData(snapshot.data());
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
+  renderBoard();
+  isApplyingRemoteUpdate = false;
 });
-renderBoard();
+
 loadBoard();
