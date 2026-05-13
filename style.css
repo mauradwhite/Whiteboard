@@ -370,70 +370,46 @@ button {
     width: calc(100% - 2.4rem);
   }
 }
-@media (max-width: 900px) {
-  body {
-    overflow: auto;
-  }
-
-  .app {
-    height: 100vh;
-    overflow: auto;
-    transform: scale(0.65);
-    transform-origin: top left;
-    width: 153.85%;
-  }
-
-  .board {
-    grid-template-columns: repeat(5, minmax(150px, 1fr));
-    gap: 0.6rem;
-  }
-
-  .column {
-    min-width: 0;
-    padding: 0.6rem;
-  }
-
-  .column h2 {
-    font-size: 0.85rem;
-  }
-
-  .sticky-note {
-    min-height: auto;
-    padding: 0.65rem;
-    font-size: 0.85rem;
-  }
-
-  .notes-section {
-    margin-top: 0.75rem;
-  }
-
-  .notes-paper {
-    min-height: 120px;
-  }
-}
 body.widget-mode {
+  overflow-x: hidden;
   overflow-y: auto;
 }
 
-body.widget-mode .app {
+body.widget-mode .app-header {
   width: 1400px;
-  max-width: none;
-  transform: none;
   zoom: 0.4;
-  padding: 1rem;
+  padding: 1rem 2rem 0.5rem;
   box-sizing: border-box;
 }
 
-body.widget-mode .board {
-  grid-template-columns: repeat(5, 1fr);
-  gap: 1rem;
-  width: 100%;
+body.widget-mode .toolbar {
+  width: 1400px;
+  zoom: 0.4;
+  padding: 0 2rem 1rem;
+  box-sizing: border-box;
 }
 
-body.widget-mode .column {
+body.widget-mode .whiteboard {
+  width: 1360px;
+  margin: 0 2rem 1.5rem;
+  zoom: 0.4;
+  overflow-x: visible;
+  box-sizing: border-box;
+}
+
+body.widget-mode .board-columns {
+  grid-template-columns: repeat(5, 1fr);
+  min-width: 0;
+  width: 100%;
+  gap: 1rem;
+}
+
+body.widget-mode .board-column {
   min-width: 0;
 }
 
 body.widget-mode .notes-paper {
+  width: 820px;
   min-height: 180px;
+  zoom: 0.4;
 }
